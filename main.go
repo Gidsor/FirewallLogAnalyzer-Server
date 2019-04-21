@@ -14,14 +14,24 @@ type ErrorMessage struct {
 
 // Log file Struct (Model)
 type LogFile struct {
+	// type of firewall
+	FirewallType string `json:"firewallType"`
+	// Common
 	ID           string `json:"id"`
 	Date         string `json:"date"`
 	Time         string `json:"time"`
+	// Specific for kaspersky
 	Description  string `json:"description"`
 	ProtectType  string `json:"protectType"`
 	Application  string `json:"application"`
 	Result       string `json:"result"`
 	ObjectAttack string `json:"objectAttack"`
+	// Specific for TP-Ling
+	TypeEvent    string `json:"typeEvent"`
+	LevelSignificance string `json:"levelSignificance"`
+	LogContent string `json:"logContent"`
+	// Specific for D-Link
+	
 }
 
 var logfiles []LogFile
@@ -45,6 +55,11 @@ func getLogFile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(error)
 }
 
+func updateLogFiles(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(logfiles)
+}
+
 func main() {
 	// Init Router
 	r := mux.NewRouter()
@@ -59,6 +74,7 @@ func main() {
 	// Route Handlers / Endpoints
 	r.HandleFunc("/api/logfiles", getLogFiles).Methods("GET")
 	r.HandleFunc("/api/logfile/{id}", getLogFile).Methods("GET")
+	r.HandleFunc("/api/updatelogs", updateLogFiles).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
