@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -51,7 +55,6 @@ var logfilesKaspersky []LogFileKaspersky
 var logfilesTPLink []LogFileTPLink
 var logfilesDLink []LogFileDLink
 
-// Get all logfiles of firewall
 func getLogFilesKaspersky(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(logfilesKaspersky)
@@ -59,19 +62,17 @@ func getLogFilesKaspersky(w http.ResponseWriter, r *http.Request) {
 
 func getLogFilesTPLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logfilesKaspersky)
+	json.NewEncoder(w).Encode(logfilesTPLink)
 }
 
 func getLogFilesDLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logfilesKaspersky)
+	json.NewEncoder(w).Encode(logfilesDLink)
 }
 
-// Get one logfile of firewall
 func getLogFileKaspersky(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r) // Get params
-	// Loop through logFiles and fund with id
+	params := mux.Vars(r)
 	for _, item := range logfilesKaspersky {
 		if item.ID == params["id"] {
 			json.NewEncoder(w).Encode(item)
@@ -84,22 +85,8 @@ func getLogFileKaspersky(w http.ResponseWriter, r *http.Request) {
 
 func getLogFileTPLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r) // Get params
-	// Loop through logFiles and fund with id
-	for _, item := range logfilesKaspersky {
-		if item.ID == params["id"] {
-			json.NewEncoder(w).Encode(item)
-			return
-		}
-	}
-	var error = ErrorMessage{Error: "Not found"}
-	json.NewEncoder(w).Encode(error)
-}
-func getLogFileDLink(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r) // Get params
-	// Loop through logFiles and fund with id
-	for _, item := range logfilesKaspersky {
+	params := mux.Vars(r)
+	for _, item := range logfilesTPLink {
 		if item.ID == params["id"] {
 			json.NewEncoder(w).Encode(item)
 			return
@@ -109,37 +96,174 @@ func getLogFileDLink(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(error)
 }
 
-// Update all logfiles in model
+func getLogFileDLink(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for _, item := range logfilesDLink {
+		if item.ID == params["id"] {
+			json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	var error = ErrorMessage{Error: "Not found"}
+	json.NewEncoder(w).Encode(error)
+}
+
+func loadKasperskyLogs() {
+	files, err := ioutil.ReadDir("./logfiles/kaspersky")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range files {
+		readKasperskyLogFile("./logfiles/kaspersky/" + f.Name())
+	}
+}
+
+func loadTPLinkLogs() {
+	files, err := ioutil.ReadDir("./logfiles/tplink")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range files {
+		readTPLinkLogFile("./logfiles/tplink/" + f.Name())
+	}
+}
+
+func loadDLinkLogs() {
+	files, err := ioutil.ReadDir("./logfiles/dlink")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range files {
+		readDLinkLogFile("./logfiles/dlink/" + f.Name())
+	}
+}
+
+func readKasperskyLogFile(path string) {
+	file, err := os.Open(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
+
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
+
+	file.Close()
+
+	for _, eachline := range txtlines {
+		// TODO: parse to Kaspersky log
+		fmt.Println(eachline)
+		logfilesKaspersky = append(logfilesKaspersky, LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: "13.04.2018", Time: "20:46:19", Description: "Обнаружена сетевая атака", ProtectType: "Защита от сетевых атак", Application: "Неизвестно", Result: "Запрещено: Intrusion.Win.CVE-2017-7269.cas.exploit", ObjectAttack: "TCP от 111.231.68.208 на локальный порт 80"})
+	}
+}
+
+func readTPLinkLogFile(path string) {
+	file, err := os.Open(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
+
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
+
+	file.Close()
+
+	for _, eachline := range txtlines {
+		// TODO: parse to TPLink log
+		fmt.Println(eachline)
+		logfilesTPLink = append(logfilesTPLink, LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: "13.04.2018", Time: "20:46:19", TypeEvent: "weqeqweqw", LevelSignificance: "qweqweqw", LogContent: "wewqe"})
+	}
+}
+
+func readDLinkLogFile(path string) {
+	file, err := os.Open(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
+
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
+
+	file.Close()
+
+	for _, eachline := range txtlines {
+		// TODO: parse to DLink log
+		fmt.Println(eachline)
+		logfilesDLink = append(logfilesDLink, LogFileDLink{ID: "1", FirewallType: "DLink", Date: "13.04.2018", Time: "20:46:19"})
+	}
+}
+
+func loadLogFiles() {
+	loadKasperskyLogs()
+	loadTPLinkLogs()
+	loadDLinkLogs()
+}
+
 func updateLogFiles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logfilesKaspersky)
+	loadLogFiles()
+	json.NewEncoder(w).Encode(nil)
+}
+
+func updateLogFilesKaspersky(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	loadKasperskyLogs()
+	json.NewEncoder(w).Encode(nil)
+}
+
+func updateLogFilesTPLink(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	loadTPLinkLogs()
+	json.NewEncoder(w).Encode(nil)
+}
+
+func updateLogFilesDLink(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	loadDLinkLogs()
+	json.NewEncoder(w).Encode(nil)
 }
 
 func main() {
-	// Init Router
 	r := mux.NewRouter()
 
-	// TODO: open and parse logfiles
+	loadLogFiles()
 
-	// logfilesKaspersky = append(logfiles, LogFileKaspersky{ID: "1", Date: "13.04.2018", Time: "20:46:19", Description: "Обнаружена сетевая атака", ProtectType: "Защита от сетевых атак", Application: "Неизвестно", Result: "Запрещено: Intrusion.Win.CVE-2017-7269.cas.exploit", ObjectAttack: "TCP от 111.231.68.208 на локальный порт 80"})
-	// logfilesKaspersky = append(logfiles, LogFileKaspersky{ID: "2", Date: "13.04.2018", Time: "4:38:58", Description: "Обнаружена сетевая атака", ProtectType: "Защита от сетевых атак", Application: "Неизвестно", Result: "Запрещено: Intrusion.Win.CVE-2017-7269.cas.exploit", ObjectAttack: "TCP от 111.233.68.128 на локальный порт 80"})
-	// logfilesKaspersky = append(logfiles, LogFileKaspersky{ID: "3", Date: "15.04.2018", Time: "12:32:05", Description: "Обнаружена сетевая атака", ProtectType: "Защита от сетевых атак", Application: "Неизвестно", Result: "Запрещено: Intrusion.Win.CVE-2017-7269.cas.exploit", ObjectAttack: "TCP от 122.11.11.22 на локальный порт 80"})
-	// logfilesKaspersky = append(logfiles, LogFileKaspersky{ID: "4", Date: "16.04.2018", Time: "19:38:13", Description: "Обнаружена сетевая атака", ProtectType: "Защита от сетевых атак", Application: "Неизвестно", Result: "Запрещено: Intrusion.Win.CVE-2017-7269.cas.exploit", ObjectAttack: "TCP от 205.231.33.41 на локальный порт 80"})
-
-	// make get and update /api/logfiles/kaspersky
 	r.HandleFunc("/api/logfiles/kaspersky", getLogFilesKaspersky).Methods("GET")
-	r.HandleFunc("/api/logfile/kaspersky/{id}", getLogFileKaspersky).Methods("GET")
-	r.HandleFunc("/api/updatelogs/kaspersky", updateLogFiles).Methods("GET")
-
-	// make get and update /api/logfiles/tplink
 	r.HandleFunc("/api/logfiles/tplink", getLogFilesTPLink).Methods("GET")
-	r.HandleFunc("/api/logfile/tplink/{id}", getLogFileTPLink).Methods("GET")
-	r.HandleFunc("/api/updatelogs/tplink", updateLogFiles).Methods("GET")
-
-	// make get and update /api/logfiles/dlink
 	r.HandleFunc("/api/logfiles/dlink", getLogFilesDLink).Methods("GET")
-	r.HandleFunc("/api/logfile/dlink/{id}", getLogFileDLink).Methods("GET")
-	r.HandleFunc("/api/updatelogs/dlink", updateLogFiles).Methods("GET")
+
+	r.HandleFunc("/api/logfiles/kaspersky/{id}", getLogFileKaspersky).Methods("GET")
+	r.HandleFunc("/api/logfiles/tplink/{id}", getLogFileTPLink).Methods("GET")
+	r.HandleFunc("/api/logfiles/dlink/{id}", getLogFileDLink).Methods("GET")
+
+	r.HandleFunc("/api/logfiles/update", updateLogFiles).Methods("GET")
+	r.HandleFunc("/api/logfiles/kaspersky/update", updateLogFiles).Methods("GET")
+	r.HandleFunc("/api/logfiles/tplink/update", updateLogFiles).Methods("GET")
+	r.HandleFunc("/api/logfiles/dlink/update", updateLogFiles).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
