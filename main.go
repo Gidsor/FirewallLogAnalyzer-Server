@@ -32,6 +32,9 @@ type LogFileKaspersky struct {
 	Application  string `json:"application"`
 	Result       string `json:"result"`
 	ObjectAttack string `json:"objectAttack"`
+	Port         string `json:"port"`
+	Protocol     string `json:"protocol"`
+	IPAddress    string `json:"ipAddress"`
 }
 
 type LogFileTPLink struct {
@@ -42,6 +45,10 @@ type LogFileTPLink struct {
 	TypeEvent         string `json:"typeEvent"`
 	LevelSignificance string `json:"levelSignificance"`
 	LogContent        string `json:"logContent"`
+	MACAddress        string `json:"macAddress"`
+	IPAddress         string `json:"ipAddress"`
+	Protocol          string `json:"protocol"`
+	Action            string `json:"action"`
 }
 
 type LogFileDLink struct {
