@@ -3,11 +3,11 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -170,58 +170,71 @@ func readKasperskyLogFile(path string) {
 	file.Close()
 
 	for _, eachline := range txtlines {
-		// TODO: parse to Kaspersky log
-		fmt.Println(eachline)
-		logfilesKaspersky = append(logfilesKaspersky, LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: "13.04.2018", Time: "20:46:19", Description: "Обнаружена сетевая атака", ProtectType: "Защита от сетевых атак", Application: "Неизвестно", Result: "Запрещено: Intrusion.Win.CVE-2017-7269.cas.exploit", ObjectAttack: "TCP от 111.231.68.208 на локальный порт 80"})
+		logfilesKaspersky = append(logfilesKaspersky, parseKasperskyString(eachline))
 	}
+}
+
+func parseKasperskyString(line string) LogFileKaspersky {
+	var lineSplit = strings.Split(line, "\t")
+	var dateSplit = strings.Split(lineSplit[0], " ")
+
+	var date = dateSplit[0]
+	var time = dateSplit[1]
+	var description = lineSplit[1]
+	var protectType = lineSplit[2]
+	var application = lineSplit[3]
+	var result = lineSplit[4]
+	var objectAttack = lineSplit[5]
+
+	return LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack}
 }
 
 func readTPLinkLogFile(path string) {
-	file, err := os.Open(path)
+	// file, err := os.Open(path)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanLines)
-	var txtlines []string
+	// scanner := bufio.NewScanner(file)
+	// scanner.Split(bufio.ScanLines)
+	// var txtlines []string
 
-	for scanner.Scan() {
-		txtlines = append(txtlines, scanner.Text())
-	}
+	// for scanner.Scan() {
+	// 	txtlines = append(txtlines, scanner.Text())
+	// }
 
-	file.Close()
+	// file.Close()
 
-	for _, eachline := range txtlines {
-		// TODO: parse to TPLink log
-		fmt.Println(eachline)
-		logfilesTPLink = append(logfilesTPLink, LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: "13.04.2018", Time: "20:46:19", TypeEvent: "weqeqweqw", LevelSignificance: "qweqweqw", LogContent: "wewqe"})
-	}
+	// for _, eachline := range txtlines {
+	// 	// TODO: parse to TPLink log
+	// 	fmt.Println(eachline)
+	// 	logfilesTPLink = append(logfilesTPLink, LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: "13.04.2018", Time: "20:46:19", TypeEvent: "weqeqweqw", LevelSignificance: "qweqweqw", LogContent: "wewqe"})
+	// }
 }
 
 func readDLinkLogFile(path string) {
-	file, err := os.Open(path)
+	// file, err := os.Open(path)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanLines)
-	var txtlines []string
+	// scanner := bufio.NewScanner(file)
+	// scanner.Split(bufio.ScanLines)
+	// var txtlines []string
 
-	for scanner.Scan() {
-		txtlines = append(txtlines, scanner.Text())
-	}
+	// for scanner.Scan() {
+	// 	txtlines = append(txtlines, scanner.Text())
+	// }
 
-	file.Close()
+	// file.Close()
 
-	for _, eachline := range txtlines {
-		// TODO: parse to DLink log
-		fmt.Println(eachline)
-		logfilesDLink = append(logfilesDLink, LogFileDLink{ID: "1", FirewallType: "DLink", Date: "13.04.2018", Time: "20:46:19"})
-	}
+	// for _, eachline := range txtlines {
+	// 	// TODO: parse to DLink log
+	// 	fmt.Println(eachline)
+	// 	logfilesDLink = append(logfilesDLink, LogFileDLink{ID: "1", FirewallType: "DLink", Date: "13.04.2018", Time: "20:46:19"})
+	// }
 }
 
 func loadLogFiles() {
