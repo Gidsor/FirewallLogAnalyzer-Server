@@ -190,51 +190,62 @@ func parseKasperskyString(line string) LogFileKaspersky {
 }
 
 func readTPLinkLogFile(path string) {
-	// file, err := os.Open(path)
+	file, err := os.Open(path)
 
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// scanner := bufio.NewScanner(file)
-	// scanner.Split(bufio.ScanLines)
-	// var txtlines []string
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
 
-	// for scanner.Scan() {
-	// 	txtlines = append(txtlines, scanner.Text())
-	// }
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
 
-	// file.Close()
+	file.Close()
 
-	// for _, eachline := range txtlines {
-	// 	// TODO: parse to TPLink log
-	// 	fmt.Println(eachline)
-	// 	logfilesTPLink = append(logfilesTPLink, LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: "13.04.2018", Time: "20:46:19", TypeEvent: "weqeqweqw", LevelSignificance: "qweqweqw", LogContent: "wewqe"})
-	// }
+	for _, eachline := range txtlines {
+		logfilesTPLink = append(logfilesTPLink, parseTPLinkString(eachline))
+	}
+}
+
+func parseTPLinkString(line string) LogFileTPLink {
+	var lineSplit = strings.Split(line, "\t")
+	var date = lineSplit[0]
+	var time = lineSplit[0]
+	var typeEvent = lineSplit[1]
+	var levelSignificance = lineSplit[2]
+	var logContent = lineSplit[3]
+
+	return LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent}
 }
 
 func readDLinkLogFile(path string) {
-	// file, err := os.Open(path)
+	file, err := os.Open(path)
 
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// scanner := bufio.NewScanner(file)
-	// scanner.Split(bufio.ScanLines)
-	// var txtlines []string
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
 
-	// for scanner.Scan() {
-	// 	txtlines = append(txtlines, scanner.Text())
-	// }
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
 
-	// file.Close()
+	file.Close()
 
-	// for _, eachline := range txtlines {
-	// 	// TODO: parse to DLink log
-	// 	fmt.Println(eachline)
-	// 	logfilesDLink = append(logfilesDLink, LogFileDLink{ID: "1", FirewallType: "DLink", Date: "13.04.2018", Time: "20:46:19"})
-	// }
+	for _, eachline := range txtlines {
+		logfilesDLink = append(logfilesDLink, parseDLinkString(eachline))
+	}
+}
+
+func parseDLinkString(line string) LogFileDLink {
+	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: "13.04.2018", Time: "20:46:19" + line}
 }
 
 func loadLogFiles() {
