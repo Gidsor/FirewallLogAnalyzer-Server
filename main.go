@@ -71,118 +71,9 @@ var protocolsName = []string{
 	"HTTPs", "HTTPS", "MTP", "SSL",
 	"IMAP", "POP", "TSL"}
 
-func getLogFilesKaspersky(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logfilesKaspersky)
-}
-
-func getLogFilesTPLink(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logfilesTPLink)
-}
-
-func getLogFilesDLink(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logfilesDLink)
-}
-
-func getLogFileKaspersky(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for _, item := range logfilesKaspersky {
-		if item.ID == params["id"] {
-			json.NewEncoder(w).Encode(item)
-			return
-		}
-	}
-	var error = ErrorMessage{Error: "Not found"}
-	json.NewEncoder(w).Encode(error)
-}
-
-func getLogFileTPLink(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for _, item := range logfilesTPLink {
-		if item.ID == params["id"] {
-			json.NewEncoder(w).Encode(item)
-			return
-		}
-	}
-	var error = ErrorMessage{Error: "Not found"}
-	json.NewEncoder(w).Encode(error)
-}
-
-func getLogFileDLink(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for _, item := range logfilesDLink {
-		if item.ID == params["id"] {
-			json.NewEncoder(w).Encode(item)
-			return
-		}
-	}
-	var error = ErrorMessage{Error: "Not found"}
-	json.NewEncoder(w).Encode(error)
-}
-
-func loadKasperskyLogs() {
-	files, err := ioutil.ReadDir("./logfiles/kaspersky")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, f := range files {
-		readKasperskyLogFile("./logfiles/kaspersky/" + f.Name())
-	}
-}
-
-func loadTPLinkLogs() {
-	files, err := ioutil.ReadDir("./logfiles/tplink")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, f := range files {
-		readTPLinkLogFile("./logfiles/tplink/" + f.Name())
-	}
-}
-
-func loadDLinkLogs() {
-	files, err := ioutil.ReadDir("./logfiles/dlink")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, f := range files {
-		readDLinkLogFile("./logfiles/dlink/" + f.Name())
-	}
-}
-
-func readKasperskyLogFile(path string) {
-	file, err := os.Open(path)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanLines)
-	var txtlines []string
-
-	for scanner.Scan() {
-		txtlines = append(txtlines, scanner.Text())
-	}
-
-	file.Close()
-
-	for _, eachline := range txtlines {
-		logfilesKaspersky = append(logfilesKaspersky, parseKasperskyString(eachline))
-	}
-}
-
+//*******************************************
+// MARK: Parse log line
+//*******************************************
 func parseKasperskyString(line string) LogFileKaspersky {
 	var lineSplit = strings.Split(line, "\t")
 	var dateSplit = strings.Split(lineSplit[0], " ")
@@ -198,6 +89,32 @@ func parseKasperskyString(line string) LogFileKaspersky {
 	var port = findPortInKaspersky(objectAttack)
 
 	return LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack, IPAddress: ipAddress, Port: port}
+}
+
+func parseTPLinkString(line string) LogFileTPLink {
+	var lineSplit = strings.Split(line, "\t")
+	var date = lineSplit[0]
+	var time = lineSplit[0]
+	var typeEvent = lineSplit[1]
+	var levelSignificance = lineSplit[2]
+	var logContent = lineSplit[3]
+
+	var ipAddress = findIP(logContent)
+	var macAddress = findMAC(logContent)
+	var protocol = ""
+
+	fmt.Println(findProtocol(logContent))
+
+	if typeEvent == "DHCP" {
+		protocol = "DHCP"
+	} else {
+	}
+
+	return LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
+}
+
+func parseDLinkString(line string) LogFileDLink {
+	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: "13.04.2018", Time: "20:46:19" + line}
 }
 
 func findIP(input string) string {
@@ -238,6 +155,31 @@ func findProtocol(input string) string {
 	return findString
 }
 
+//*******************************************
+// MARK: Read log files and append to model
+//*******************************************
+func readKasperskyLogFile(path string) {
+	file, err := os.Open(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	var txtlines []string
+
+	for scanner.Scan() {
+		txtlines = append(txtlines, scanner.Text())
+	}
+
+	file.Close()
+
+	for _, eachline := range txtlines {
+		logfilesKaspersky = append(logfilesKaspersky, parseKasperskyString(eachline))
+	}
+}
+
 func readTPLinkLogFile(path string) {
 	file, err := os.Open(path)
 
@@ -258,28 +200,6 @@ func readTPLinkLogFile(path string) {
 	for _, eachline := range txtlines {
 		logfilesTPLink = append(logfilesTPLink, parseTPLinkString(eachline))
 	}
-}
-
-func parseTPLinkString(line string) LogFileTPLink {
-	var lineSplit = strings.Split(line, "\t")
-	var date = lineSplit[0]
-	var time = lineSplit[0]
-	var typeEvent = lineSplit[1]
-	var levelSignificance = lineSplit[2]
-	var logContent = lineSplit[3]
-
-	var ipAddress = findIP(logContent)
-	var macAddress = findMAC(logContent)
-	var protocol = ""
-
-	fmt.Println(findProtocol(logContent))
-
-	if typeEvent == "DHCP" {
-		protocol = "DHCP"
-	} else {
-	}
-
-	return LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
 }
 
 func readDLinkLogFile(path string) {
@@ -304,16 +224,54 @@ func readDLinkLogFile(path string) {
 	}
 }
 
-func parseDLinkString(line string) LogFileDLink {
-	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: "13.04.2018", Time: "20:46:19" + line}
-}
-
+//*******************************************
+// MARK: Load log files and read
+//*******************************************
 func loadLogFiles() {
 	loadKasperskyLogs()
 	loadTPLinkLogs()
 	loadDLinkLogs()
 }
 
+func loadKasperskyLogs() {
+	files, err := ioutil.ReadDir("./logfiles/kaspersky")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range files {
+		readKasperskyLogFile("./logfiles/kaspersky/" + f.Name())
+	}
+}
+
+func loadTPLinkLogs() {
+	files, err := ioutil.ReadDir("./logfiles/tplink")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range files {
+		readTPLinkLogFile("./logfiles/tplink/" + f.Name())
+	}
+}
+
+func loadDLinkLogs() {
+	files, err := ioutil.ReadDir("./logfiles/dlink")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range files {
+		readDLinkLogFile("./logfiles/dlink/" + f.Name())
+	}
+}
+
+//*******************************************
+// MARK: Update logs (ROUTES)
+//*******************************************
 func updateLogFiles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	loadLogFiles()
@@ -336,6 +294,66 @@ func updateLogFilesDLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	loadDLinkLogs()
 	json.NewEncoder(w).Encode(nil)
+}
+
+//*******************************************
+// MARK: Get log files (ROUTES)
+//*******************************************
+func getLogFilesKaspersky(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(logfilesKaspersky)
+}
+
+func getLogFilesTPLink(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(logfilesTPLink)
+}
+
+func getLogFilesDLink(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(logfilesDLink)
+}
+
+//*******************************************
+// MARK: Get one log file by id (ROUTES)
+//*******************************************
+func getLogFileKaspersky(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for _, item := range logfilesKaspersky {
+		if item.ID == params["id"] {
+			json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	var error = ErrorMessage{Error: "Not found"}
+	json.NewEncoder(w).Encode(error)
+}
+
+func getLogFileTPLink(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for _, item := range logfilesTPLink {
+		if item.ID == params["id"] {
+			json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	var error = ErrorMessage{Error: "Not found"}
+	json.NewEncoder(w).Encode(error)
+}
+
+func getLogFileDLink(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for _, item := range logfilesDLink {
+		if item.ID == params["id"] {
+			json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	var error = ErrorMessage{Error: "Not found"}
+	json.NewEncoder(w).Encode(error)
 }
 
 func main() {
