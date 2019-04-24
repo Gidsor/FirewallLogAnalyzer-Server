@@ -3,10 +3,12 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -61,6 +63,13 @@ type LogFileDLink struct {
 var logfilesKaspersky []LogFileKaspersky
 var logfilesTPLink []LogFileTPLink
 var logfilesDLink []LogFileDLink
+var protocolsName = []string{
+	"TCP", "DHCP", "PPTP", "L2TP",
+	"IPSEC", "FTP", "TFTP", "H323",
+	"RTSP", "SSH", "UDP", "RTPS",
+	"SSH", "SMB", "Telnet", "HTTP",
+	"HTTPs", "HTTPS", "MTP", "SSL",
+	"IMAP", "POP", "TSL"}
 
 func getLogFilesKaspersky(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -185,8 +194,48 @@ func parseKasperskyString(line string) LogFileKaspersky {
 	var application = lineSplit[3]
 	var result = lineSplit[4]
 	var objectAttack = lineSplit[5]
+	var ipAddress = findIP(objectAttack)
+	var port = findPortInKaspersky(objectAttack)
 
-	return LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack}
+	return LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack, IPAddress: ipAddress, Port: port}
+}
+
+func findIP(input string) string {
+	numBlock := "(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])"
+	regexPattern := numBlock + "\\." + numBlock + "\\." + numBlock + "\\." + numBlock
+
+	regEx := regexp.MustCompile(regexPattern)
+	return regEx.FindString(input)
+}
+
+func findMAC(input string) string {
+	regexPattern := "([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
+
+	regEx := regexp.MustCompile(regexPattern)
+	return regEx.FindString(input)
+}
+
+func findPortInKaspersky(input string) string {
+	regexPattern := "порт [0-9]+"
+
+	regEx := regexp.MustCompile(regexPattern)
+	var findString = regEx.FindString(input)
+	var splitString = strings.Split(findString, " ")
+
+	if len(splitString) == 2 {
+		return splitString[1]
+	}
+
+	return findString
+}
+
+func findProtocol(input string) string {
+	regexPattern := "(\bIPSEC|\bITEM|\bFOO)"
+
+	regEx := regexp.MustCompile(regexPattern)
+	var findString = regEx.FindString(input)
+
+	return findString
 }
 
 func readTPLinkLogFile(path string) {
@@ -219,7 +268,18 @@ func parseTPLinkString(line string) LogFileTPLink {
 	var levelSignificance = lineSplit[2]
 	var logContent = lineSplit[3]
 
-	return LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent}
+	var ipAddress = findIP(logContent)
+	var macAddress = findMAC(logContent)
+	var protocol = ""
+
+	fmt.Println(findProtocol(logContent))
+
+	if typeEvent == "DHCP" {
+		protocol = "DHCP"
+	} else {
+	}
+
+	return LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
 }
 
 func readDLinkLogFile(path string) {
