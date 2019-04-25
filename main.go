@@ -97,8 +97,8 @@ func parseTPLinkString(line string) LogFileTPLink {
 	var lineSplit = strings.Split(line, "\t")
 	var date = lineSplit[0]
 	var time = lineSplit[0]
-	var typeEvent = lineSplit[1]
-	var levelSignificance = lineSplit[2]
+	var typeEvent = strings.TrimSpace(lineSplit[1])
+	var levelSignificance = strings.TrimSpace(lineSplit[2])
 	var logContent = lineSplit[3]
 
 	var ipAddress = findIP(logContent)
