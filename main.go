@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -87,8 +86,11 @@ func parseKasperskyString(line string) LogFileKaspersky {
 	var objectAttack = lineSplit[5]
 	var ipAddress = findIP(objectAttack)
 	var port = findPortInKaspersky(objectAttack)
+	var protocol = findProtocol(objectAttack)
 
-	return LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack, IPAddress: ipAddress, Port: port}
+	// fmt.Println(protocol)
+
+	return LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack, IPAddress: ipAddress, Port: port, Protocol: protocol}
 }
 
 func parseTPLinkString(line string) LogFileTPLink {
@@ -103,11 +105,10 @@ func parseTPLinkString(line string) LogFileTPLink {
 	var macAddress = findMAC(logContent)
 	var protocol = ""
 
-	fmt.Println(findProtocol(logContent))
-
 	if typeEvent == "DHCP" {
 		protocol = "DHCP"
 	} else {
+		protocol = findProtocol(logContent)
 	}
 
 	return LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
@@ -147,7 +148,11 @@ func findPortInKaspersky(input string) string {
 }
 
 func findProtocol(input string) string {
-	regexPattern := "(\bIPSEC|\bITEM|\bFOO)"
+	// regexPattern := `(?i)TCP\b|(?i)DHCP|(?i)DHCP|(?i)IPSEC`
+	regexPattern := ``
+	for _, element := range protocolsName {
+		regexPattern += (`(?i)` + element + `\b|`)
+	}
 
 	regEx := regexp.MustCompile(regexPattern)
 	var findString = regEx.FindString(input)
