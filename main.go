@@ -49,7 +49,6 @@ type LogFileTPLink struct {
 	MACAddress        string `json:"macAddress"`
 	IPAddress         string `json:"ipAddress"`
 	Protocol          string `json:"protocol"`
-	Action            string `json:"action"`
 }
 
 type LogFileDLink struct {
@@ -57,6 +56,19 @@ type LogFileDLink struct {
 	ID           string `json:"id"`
 	Date         string `json:"date"`
 	Time         string `json:"time"`
+	Severity     string `json:"severity"`
+	Category     string `json:"category"`
+	CategoryID   string `json:"categoryID"`
+	Rule         string `json:"rule"`
+	Protocol     string `json:"proto"`
+	SrcIf        string `json:"srcIf"`
+	DstIf        string `json:"dstIf"`
+	SrcIP        string `json:"srcIP"`
+	DstIP        string `json:"dstIP"`
+	SrcPort      string `json:"srcPort"`
+	DstPort      string `json:"dstPort"`
+	Event        string `json:"event"`
+	Action       string `json:"action"`
 }
 
 var logfilesKaspersky []LogFileKaspersky
