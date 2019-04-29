@@ -133,16 +133,16 @@ func parseDLinkString(line string) LogFileDLink {
 	var category = lineSplit[2]
 	var categoryID = lineSplit[3]
 	var severity = lineSplit[4]
-	var event = regexp.MustCompile(`event=\S*`).FindString(line)
-	var action = regexp.MustCompile(`action=\S*`).FindString(line)
-	var rule = regexp.MustCompile(`rule=\S*`).FindString(line)
-	var proto = regexp.MustCompile(`connipproto=\S*`).FindString(line)
-	var srcIf = regexp.MustCompile(`connrecvif=\S*`).FindString(line)
-	var dstIf = regexp.MustCompile(`conndestif=\S*`).FindString(line)
-	var srcIP = regexp.MustCompile(`connsrcip=\S*`).FindString(line)
-	var dstIP = regexp.MustCompile(`conndestip=\S*`).FindString(line)
-	var srcPort = regexp.MustCompile(`connsrcport=\S*`).FindString(line)
-	var dstPort = regexp.MustCompile(`conndestport=\S*`).FindString(line)
+	var event = strings.Replace(regexp.MustCompile(`event=\S*`).FindString(line), "event=", "", -1)
+	var action = strings.Replace(regexp.MustCompile(`action=\S*`).FindString(line), "action=", "", -1)
+	var rule = strings.Replace(regexp.MustCompile(`rule=\S*`).FindString(line), "rule=", "", -1)
+	var proto = strings.Replace(regexp.MustCompile(`connipproto=\S*`).FindString(line), "connipproto=", "", -1)
+	var srcIf = strings.Replace(regexp.MustCompile(`connrecvif=\S*`).FindString(line), "connrecvif=", "", -1)
+	var dstIf = strings.Replace(regexp.MustCompile(`conndestif=\S*`).FindString(line), "conndestif=", "", -1)
+	var srcIP = strings.Replace(regexp.MustCompile(`connsrcip=\S*`).FindString(line), "connsrcip=", "", -1)
+	var dstIP = strings.Replace(regexp.MustCompile(`conndestip=\S*`).FindString(line), "conndestip=", "", -1)
+	var srcPort = strings.Replace(regexp.MustCompile(`connsrcport=\S*`).FindString(line), "connsrcport=", "", -1)
+	var dstPort = strings.Replace(regexp.MustCompile(`conndestport=\S*`).FindString(line), "conndestport=", "", -1)
 
 	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: date, Time: time, Category: category, CategoryID: categoryID, Severity: severity, Event: event, Action: action, Rule: rule, Protocol: proto, SrcIf: srcIf, DstIf: dstIf, SrcIP: srcIP, DstIP: dstIP, SrcPort: srcPort, DstPort: dstPort}
 }
