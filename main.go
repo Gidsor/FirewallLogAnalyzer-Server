@@ -127,7 +127,18 @@ func parseTPLinkString(line string) LogFileTPLink {
 }
 
 func parseDLinkString(line string) LogFileDLink {
-	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: "13.04.2018", Time: "20:46:19" + line}
+	var lineSplit = strings.Split(line, " ")
+	var date = lineSplit[0]
+	var time = lineSplit[1]
+	var category = lineSplit[2]
+	var categoryID = lineSplit[3]
+	var severity = lineSplit[4]
+	var event = regexp.MustCompile(`event=\S*`).FindString(line)
+	var action = regexp.MustCompile(`action=\S*`).FindString(line)
+	var rule = regexp.MustCompile(`rule=\S*`).FindString(line)
+	var proto = regexp.MustCompile(`connipproto=\S*`).FindString(line)
+
+	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: date, Time: time, Category: category, CategoryID: categoryID, Severity: severity, Event: event, Action: action, Rule: rule, Protocol: proto}
 }
 
 func findIP(input string) string {
