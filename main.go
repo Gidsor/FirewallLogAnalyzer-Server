@@ -137,8 +137,14 @@ func parseDLinkString(line string) LogFileDLink {
 	var action = regexp.MustCompile(`action=\S*`).FindString(line)
 	var rule = regexp.MustCompile(`rule=\S*`).FindString(line)
 	var proto = regexp.MustCompile(`connipproto=\S*`).FindString(line)
+	var srcIf = regexp.MustCompile(`connrecvif=\S*`).FindString(line)
+	var dstIf = regexp.MustCompile(`conndestif=\S*`).FindString(line)
+	var srcIP = regexp.MustCompile(`connsrcip=\S*`).FindString(line)
+	var dstIP = regexp.MustCompile(`conndestip=\S*`).FindString(line)
+	var srcPort = regexp.MustCompile(`connsrcport=\S*`).FindString(line)
+	var dstPort = regexp.MustCompile(`conndestport=\S*`).FindString(line)
 
-	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: date, Time: time, Category: category, CategoryID: categoryID, Severity: severity, Event: event, Action: action, Rule: rule, Protocol: proto}
+	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: date, Time: time, Category: category, CategoryID: categoryID, Severity: severity, Event: event, Action: action, Rule: rule, Protocol: proto, SrcIf: srcIf, DstIf: dstIf, SrcIP: srcIP, DstIP: dstIP, SrcPort: srcPort, DstPort: dstPort}
 }
 
 func findIP(input string) string {
