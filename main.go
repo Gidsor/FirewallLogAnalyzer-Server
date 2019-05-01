@@ -268,6 +268,7 @@ func loadLogFiles() {
 }
 
 func loadKasperskyLogs() {
+	logfilesKaspersky = nil
 	files, err := ioutil.ReadDir("./logfiles/kaspersky")
 
 	if err != nil {
@@ -280,6 +281,7 @@ func loadKasperskyLogs() {
 }
 
 func loadTPLinkLogs() {
+	logfilesTPLink = nil
 	files, err := ioutil.ReadDir("./logfiles/tplink")
 
 	if err != nil {
@@ -292,6 +294,7 @@ func loadTPLinkLogs() {
 }
 
 func loadDLinkLogs() {
+	logfilesDLink = nil
 	files, err := ioutil.ReadDir("./logfiles/dlink")
 
 	if err != nil {
@@ -309,25 +312,25 @@ func loadDLinkLogs() {
 func updateLogFiles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	loadLogFiles()
-	json.NewEncoder(w).Encode(nil)
+	json.NewEncoder(w).Encode(append([]interface{}{}, logfilesKaspersky, logfilesTPLink, logfilesDLink))
 }
 
 func updateLogFilesKaspersky(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	loadKasperskyLogs()
-	json.NewEncoder(w).Encode(nil)
+	json.NewEncoder(w).Encode(logfilesKaspersky)
 }
 
 func updateLogFilesTPLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	loadTPLinkLogs()
-	json.NewEncoder(w).Encode(nil)
+	json.NewEncoder(w).Encode(logfilesTPLink)
 }
 
 func updateLogFilesDLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	loadDLinkLogs()
-	json.NewEncoder(w).Encode(nil)
+	json.NewEncoder(w).Encode(logfilesDLink)
 }
 
 //*******************************************
@@ -404,9 +407,9 @@ func main() {
 	r.HandleFunc("/api/logfiles/dlink/{id}", getLogFileDLink).Methods("GET")
 
 	r.HandleFunc("/api/logfiles/update", updateLogFiles).Methods("GET")
-	r.HandleFunc("/api/logfiles/kaspersky/update", updateLogFiles).Methods("GET")
-	r.HandleFunc("/api/logfiles/tplink/update", updateLogFiles).Methods("GET")
-	r.HandleFunc("/api/logfiles/dlink/update", updateLogFiles).Methods("GET")
+	r.HandleFunc("/api/logfiles/update/kaspersky", updateLogFilesKaspersky).Methods("GET")
+	r.HandleFunc("/api/logfiles/update/tplink", updateLogFilesTPLink).Methods("GET")
+	r.HandleFunc("/api/logfiles/update/dlink", updateLogFilesDLink).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
