@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -25,7 +26,7 @@ const (
 
 type LogFileKaspersky struct {
 	FirewallType string `json:"firewallType"`
-	ID           string `json:"id"`
+	ID           int    `json:"id"`
 	Date         string `json:"date"`
 	Time         string `json:"time"`
 	Description  string `json:"description"`
@@ -40,7 +41,7 @@ type LogFileKaspersky struct {
 
 type LogFileTPLink struct {
 	FirewallType      string `json:"firewallType"`
-	ID                string `json:"id"`
+	ID                int    `json:"id"`
 	Date              string `json:"date"`
 	Time              string `json:"time"`
 	TypeEvent         string `json:"typeEvent"`
@@ -53,7 +54,7 @@ type LogFileTPLink struct {
 
 type LogFileDLink struct {
 	FirewallType string `json:"firewallType"`
-	ID           string `json:"id"`
+	ID           int    `json:"id"`
 	Date         string `json:"date"`
 	Time         string `json:"time"`
 	Severity     string `json:"severity"`
@@ -71,6 +72,7 @@ type LogFileDLink struct {
 	Action       string `json:"action"`
 }
 
+var idCounter = 0
 var logfilesKaspersky []LogFileKaspersky
 var logfilesTPLink []LogFileTPLink
 var logfilesDLink []LogFileDLink
@@ -100,9 +102,9 @@ func parseKasperskyString(line string) LogFileKaspersky {
 	var port = findPortInKaspersky(objectAttack)
 	var protocol = findProtocol(objectAttack)
 
-	// fmt.Println(protocol)
+	idCounter++
 
-	return LogFileKaspersky{ID: "1", FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack, IPAddress: ipAddress, Port: port, Protocol: protocol}
+	return LogFileKaspersky{ID: idCounter, FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack, IPAddress: ipAddress, Port: port, Protocol: protocol}
 }
 
 func parseTPLinkString(line string) LogFileTPLink {
@@ -123,7 +125,9 @@ func parseTPLinkString(line string) LogFileTPLink {
 		protocol = findProtocol(logContent)
 	}
 
-	return LogFileTPLink{ID: "1", FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
+	idCounter++
+
+	return LogFileTPLink{ID: idCounter, FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
 }
 
 func parseDLinkString(line string) LogFileDLink {
@@ -144,7 +148,9 @@ func parseDLinkString(line string) LogFileDLink {
 	var srcPort = strings.Replace(regexp.MustCompile(`connsrcport=\S*`).FindString(line), "connsrcport=", "", -1)
 	var dstPort = strings.Replace(regexp.MustCompile(`conndestport=\S*`).FindString(line), "conndestport=", "", -1)
 
-	return LogFileDLink{ID: "1", FirewallType: "DLink", Date: date, Time: time, Category: category, CategoryID: categoryID, Severity: severity, Event: event, Action: action, Rule: rule, Protocol: proto, SrcIf: srcIf, DstIf: dstIf, SrcIP: srcIP, DstIP: dstIP, SrcPort: srcPort, DstPort: dstPort}
+	idCounter++
+
+	return LogFileDLink{ID: idCounter, FirewallType: "DLink", Date: date, Time: time, Category: category, CategoryID: categoryID, Severity: severity, Event: event, Action: action, Rule: rule, Protocol: proto, SrcIf: srcIf, DstIf: dstIf, SrcIP: srcIP, DstIP: dstIP, SrcPort: srcPort, DstPort: dstPort}
 }
 
 func findIP(input string) string {
@@ -358,7 +364,8 @@ func getLogFileKaspersky(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	for _, item := range logfilesKaspersky {
-		if item.ID == params["id"] {
+		id, _ := strconv.Atoi(params["id"])
+		if item.ID == id {
 			json.NewEncoder(w).Encode(item)
 			return
 		}
@@ -371,7 +378,8 @@ func getLogFileTPLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	for _, item := range logfilesTPLink {
-		if item.ID == params["id"] {
+		id, _ := strconv.Atoi(params["id"])
+		if item.ID == id {
 			json.NewEncoder(w).Encode(item)
 			return
 		}
@@ -384,7 +392,8 @@ func getLogFileDLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	for _, item := range logfilesDLink {
-		if item.ID == params["id"] {
+		id, _ := strconv.Atoi(params["id"])
+		if item.ID == id {
 			json.NewEncoder(w).Encode(item)
 			return
 		}
