@@ -109,8 +109,8 @@ func parseKasperskyString(line string) LogFileKaspersky {
 
 func parseTPLinkString(line string) LogFileTPLink {
 	var lineSplit = strings.Split(line, "\t")
-	var date = lineSplit[0]
-	var time = lineSplit[0]
+	var date = strings.Split(lineSplit[0], " ")[0] + " " + strings.Split(lineSplit[0], " ")[1]
+	var time = strings.Split(lineSplit[0], " ")[2]
 	var typeEvent = strings.TrimSpace(lineSplit[1])
 	var levelSignificance = strings.TrimSpace(lineSplit[2])
 	var logContent = lineSplit[3]
