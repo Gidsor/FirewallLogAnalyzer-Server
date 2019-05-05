@@ -107,9 +107,21 @@ func parseKasperskyString(line string) LogFileKaspersky {
 	return LogFileKaspersky{ID: idCounter, FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack, IPAddress: ipAddress, Port: port, Protocol: protocol}
 }
 
-func parseTPLinkString(line string) LogFileTPLink {
+var dateTPLink = ""
+
+func parseTPLinkString(line string) {
+	if line == "" || strings.Contains(line, "#") {
+		if strings.Contains(line, "Time = ") {
+			var lineSplit = strings.Split(line, " ")
+			dateTPLink = lineSplit[3]
+		}
+		return
+	}
 	var lineSplit = strings.Split(line, "\t")
 	var date = strings.Split(lineSplit[0], " ")[0] + " " + strings.Split(lineSplit[0], " ")[1]
+	if dateTPLink != "" {
+		date = dateTPLink
+	}
 	var time = strings.Split(lineSplit[0], " ")[2]
 	var typeEvent = strings.TrimSpace(lineSplit[1])
 	var levelSignificance = strings.TrimSpace(lineSplit[2])
@@ -127,7 +139,8 @@ func parseTPLinkString(line string) LogFileTPLink {
 
 	idCounter++
 
-	return LogFileTPLink{ID: idCounter, FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
+	var log = LogFileTPLink{ID: idCounter, FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
+	logfilesTPLink = append(logfilesTPLink, log)
 }
 
 func parseDLinkString(line string) LogFileDLink {
@@ -238,7 +251,7 @@ func readTPLinkLogFile(path string) {
 	file.Close()
 
 	for _, eachline := range txtlines {
-		logfilesTPLink = append(logfilesTPLink, parseTPLinkString(eachline))
+		parseTPLinkString(eachline)
 	}
 }
 
