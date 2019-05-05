@@ -122,7 +122,7 @@ func parseTPLinkString(line string) {
 	if dateTPLink != "" {
 		date = dateTPLink
 	}
-	var time = strings.Split(lineSplit[0], " ")[2]
+	var time = strings.Split(lineSplit[0], " ")[len(strings.Split(lineSplit[0], " "))-1]
 	var typeEvent = strings.TrimSpace(lineSplit[1])
 	var levelSignificance = strings.TrimSpace(lineSplit[2])
 	var logContent = lineSplit[3]
