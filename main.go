@@ -50,6 +50,7 @@ type LogFileTPLink struct {
 	MACAddress        string `json:"macAddress"`
 	IPAddress         string `json:"ipAddress"`
 	Protocol          string `json:"protocol"`
+	Event             string `json:"event"`
 }
 
 type LogFileDLink struct {
@@ -136,10 +137,12 @@ func parseTPLinkString(line string) {
 	} else {
 		protocol = findProtocol(logContent)
 	}
+	var event = strings.Replace(logContent, ipAddress, "", -1)
+	event = strings.Replace(event, macAddress, "", -1)
 
 	idCounter++
 
-	var log = LogFileTPLink{ID: idCounter, FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol}
+	var log = LogFileTPLink{ID: idCounter, FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol, Event: event}
 	logfilesTPLink = append(logfilesTPLink, log)
 }
 
