@@ -54,23 +54,31 @@ type LogFileTPLink struct {
 }
 
 type LogFileDLink struct {
-	FirewallType string `json:"firewallType"`
-	ID           int    `json:"id"`
-	Date         string `json:"date"`
-	Time         string `json:"time"`
-	Severity     string `json:"severity"`
-	Category     string `json:"category"`
-	CategoryID   string `json:"categoryID"`
-	Rule         string `json:"rule"`
-	Protocol     string `json:"proto"`
-	SrcIf        string `json:"srcIf"`
-	DstIf        string `json:"dstIf"`
-	SrcIP        string `json:"srcIP"`
-	DstIP        string `json:"dstIP"`
-	SrcPort      string `json:"srcPort"`
-	DstPort      string `json:"dstPort"`
-	Event        string `json:"event"`
-	Action       string `json:"action"`
+	FirewallType    string `json:"firewallType"`
+	ID              int    `json:"id"`
+	Date            string `json:"date"`
+	Time            string `json:"time"`
+	Severity        string `json:"severity"`
+	Category        string `json:"category"`
+	CategoryID      string `json:"categoryID"`
+	Rule            string `json:"rule"`
+	Protocol        string `json:"proto"`
+	SrcIf           string `json:"srcIf"`
+	DstIf           string `json:"dstIf"`
+	SrcIP           string `json:"srcIP"`
+	DstIP           string `json:"dstIP"`
+	SrcPort         string `json:"srcPort"`
+	DstPort         string `json:"dstPort"`
+	Event           string `json:"event"`
+	Action          string `json:"action"`
+	Conn            string `json:"conn"`
+	ConnNewSrcIp    string `json:"connnewsrcip"`
+	ConnNewSrcPort  string `json:"connnewsrcport"`
+	ConnNewDestIp   string `json:"connnewdestip"`
+	ConnNewDestPort string `json:"connnewdestport"`
+	OrigSent        string `json:"origsent"`
+	TermSent        string `json:"termsent"`
+	ConnTime        string `json:"conntime"`
 }
 
 var idCounter = 0
@@ -105,7 +113,19 @@ func parseKasperskyString(line string) LogFileKaspersky {
 
 	idCounter++
 
-	return LogFileKaspersky{ID: idCounter, FirewallType: "Kaspersky", Date: date, Time: time, Description: description, ProtectType: protectType, Application: application, Result: result, ObjectAttack: objectAttack, IPAddress: ipAddress, Port: port, Protocol: protocol}
+	return LogFileKaspersky{
+		ID:           idCounter,
+		FirewallType: "Kaspersky",
+		Date:         date,
+		Time:         time,
+		Description:  description,
+		ProtectType:  protectType,
+		Application:  application,
+		Result:       result,
+		ObjectAttack: objectAttack,
+		IPAddress:    ipAddress,
+		Port:         port,
+		Protocol:     protocol}
 }
 
 var dateTPLink = ""
@@ -142,7 +162,18 @@ func parseTPLinkString(line string) {
 
 	idCounter++
 
-	var log = LogFileTPLink{ID: idCounter, FirewallType: "TPLink", Date: date, Time: time, TypeEvent: typeEvent, LevelSignificance: levelSignificance, LogContent: logContent, IPAddress: ipAddress, MACAddress: macAddress, Protocol: protocol, Event: event}
+	var log = LogFileTPLink{
+		ID:                idCounter,
+		FirewallType:      "TPLink",
+		Date:              date,
+		Time:              time,
+		TypeEvent:         typeEvent,
+		LevelSignificance: levelSignificance,
+		LogContent:        logContent,
+		IPAddress:         ipAddress,
+		MACAddress:        macAddress,
+		Protocol:          protocol,
+		Event:             event}
 	logfilesTPLink = append(logfilesTPLink, log)
 }
 
@@ -164,9 +195,42 @@ func parseDLinkString(line string) LogFileDLink {
 	var srcPort = strings.Replace(regexp.MustCompile(`connsrcport=\S*`).FindString(line), "connsrcport=", "", -1)
 	var dstPort = strings.Replace(regexp.MustCompile(`conndestport=\S*`).FindString(line), "conndestport=", "", -1)
 
+	var conn = strings.Replace(regexp.MustCompile(`conn=\S*`).FindString(line), "conn=", "", -1)
+	var connnewsrcip = strings.Replace(regexp.MustCompile(`connnewsrcip=\S*`).FindString(line), "connnewsrcip=", "", -1)
+	var connnewsrcport = strings.Replace(regexp.MustCompile(`connnewsrcport=\S*`).FindString(line), "connnewsrcport=", "", -1)
+	var connnewdestip = strings.Replace(regexp.MustCompile(`connnewdestip=\S*`).FindString(line), "connnewdestip=", "", -1)
+	var connnewdestport = strings.Replace(regexp.MustCompile(`connnewdestport=\S*`).FindString(line), "connnewdestport=", "", -1)
+	var origsent = strings.Replace(regexp.MustCompile(`origsent=\S*`).FindString(line), "origsent=", "", -1)
+	var termsent = strings.Replace(regexp.MustCompile(`termsent=\S*`).FindString(line), "termsent=", "", -1)
+	var conntime = strings.Replace(regexp.MustCompile(`conntime=\S*`).FindString(line), "conntime=", "", -1)
 	idCounter++
 
-	return LogFileDLink{ID: idCounter, FirewallType: "DLink", Date: date, Time: time, Category: category, CategoryID: categoryID, Severity: severity, Event: event, Action: action, Rule: rule, Protocol: proto, SrcIf: srcIf, DstIf: dstIf, SrcIP: srcIP, DstIP: dstIP, SrcPort: srcPort, DstPort: dstPort}
+	return LogFileDLink{
+		ID:              idCounter,
+		FirewallType:    "DLink",
+		Date:            date,
+		Time:            time,
+		Category:        category,
+		CategoryID:      categoryID,
+		Severity:        severity,
+		Event:           event,
+		Action:          action,
+		Rule:            rule,
+		Protocol:        proto,
+		SrcIf:           srcIf,
+		DstIf:           dstIf,
+		SrcIP:           srcIP,
+		DstIP:           dstIP,
+		SrcPort:         srcPort,
+		DstPort:         dstPort,
+		Conn:            conn,
+		ConnNewSrcIp:    connnewsrcip,
+		ConnNewSrcPort:  connnewsrcport,
+		ConnNewDestIp:   connnewdestip,
+		ConnNewDestPort: connnewdestport,
+		OrigSent:        origsent,
+		TermSent:        termsent,
+		ConnTime:        conntime}
 }
 
 func findIP(input string) string {
